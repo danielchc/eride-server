@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package pb_auth_service;
+option go_package = "./pb_auth_service";
+
+service PBAuthService {
+  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
+  rpc Login (LoginRequest) returns (LoginResponse);
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message CreateUserResponse {
+  string AccessToken = 1;
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string AccessToken = 1;
+}
