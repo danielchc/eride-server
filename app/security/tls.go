@@ -9,8 +9,16 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-func LoadTLSCredentials() (credentials.TransportCredentials, error) {
-	caCert, err := os.ReadFile("./certs/ca.crt")
+type TLSConfigData struct {
+	CA         string
+	ServerCert string
+	ServerKey  string
+}
+
+func LoadTLSCredentials(tlsConfigData *TLSConfigData) (credentials.TransportCredentials, error) {
+
+	caCert, err := os.ReadFile(tlsConfigData.CA)
+
 	if err != nil {
 		return nil, fmt.Errorf("error reading CA certificate: %v", err)
 	}
@@ -20,7 +28,7 @@ func LoadTLSCredentials() (credentials.TransportCredentials, error) {
 		return nil, fmt.Errorf("failed to add CA certificate to pool")
 	}
 
-	serverCert, err := tls.LoadX509KeyPair("./certs/server.crt", "./certs/server.key")
+	serverCert, err := tls.LoadX509KeyPair(tlsConfigData.ServerCert, tlsConfigData.ServerKey)
 	if err != nil {
 		return nil, fmt.Errorf("error loading server key pair: %v", err)
 	}

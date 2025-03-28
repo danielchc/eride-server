@@ -1,0 +1,8 @@
+
+tls:
+  ca: ./certs/ca.crt
+  cert: ./certs/server.crt
+  key: ./certs/server.key
+
+security:
+  jwtSecret: "your_jwt_secret"

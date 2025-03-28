@@ -2,13 +2,17 @@ package main
 
 import (
 	"chenel/passport/app/auth"
+	"chenel/passport/app/config"
+	"chenel/passport/app/consts"
 	"chenel/passport/app/db"
 	"chenel/passport/app/security"
 	"chenel/passport/pb/pb_auth_service"
 	"chenel/passport/service"
 	"context"
+	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -36,33 +40,43 @@ func streamInterceptor(
 
 func main() {
 
-	creds, err := security.LoadTLSCredentials()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Error loading config file: %v", err)
+	}
+
+	creds, err := security.LoadTLSCredentials(
+		&security.TLSConfigData{
+			CA:         cfg.GetString("tls.ca"),
+			ServerCert: cfg.GetString("tls.cert"),
+			ServerKey:  cfg.GetString("tls.key"),
+		},
+	)
 	if err != nil {
 		log.Fatalf("Failed to load TLS credentials: %v", err)
 	}
 
 	dbstore, err := db.NewSQLiteDBProvider("password_manager.db")
-
 	if err != nil {
 		log.Fatalf("Failed: %v", err)
 	}
 
 	authStore := auth.NewUserStore(dbstore)
-	jwtManager := auth.NewJWTManager("secret", 150000)
+	jwtManager := auth.NewJWTManager(cfg.GetString("security.jwtSecret"), time.Duration(cfg.GetUint32("security.jwtTokenDuration")))
 
+	// GRPC server with TLS
 	grpcServer := grpc.NewServer(grpc.Creds(creds), grpc.UnaryInterceptor(unaryInterceptor), grpc.StreamInterceptor(streamInterceptor))
-
-	// Postman
 	reflection.Register(grpcServer)
 
 	//Nombres pochos
 	pb_auth_service.RegisterPBAuthServiceServer(grpcServer, service.NewAuthService(*authStore, jwtManager))
 
-	listener, err := net.Listen("tcp", ":50051")
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GetInt("server.port")))
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
-	log.Println("gRPC server is running on port 50051 with TLS...")
+	log.Printf("%s is running on port %d with TLS...", consts.APP_NAME, cfg.GetInt("server.port"))
+
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}
