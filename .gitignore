@@ -2,3 +2,4 @@ pb/*
 certs/*
 .env
 *.sqlite
+*.db
