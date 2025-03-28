@@ -1,8 +1,11 @@
 package main
 
 import (
+	"chenel/passport/app/auth"
 	"chenel/passport/app/db"
 	"chenel/passport/app/security"
+	"chenel/passport/pb/pb_auth_service"
+	"chenel/passport/service"
 	"context"
 	"log"
 	"net"
@@ -38,15 +41,14 @@ func main() {
 		log.Fatalf("Failed to load TLS credentials: %v", err)
 	}
 
-	dbstore, err := db.NewDBProvider("password_manager.db")
-
-	dbstore.Create(&db.User{FirstName: "Alice", LastName: "Smith", Username: "alice_smith", Password: "hashed_password_1", TOTPSecret: "TOTP_SECRET_1"})
+	dbstore, err := db.NewSQLiteDBProvider("password_manager.db")
 
 	if err != nil {
 		log.Fatalf("Failed: %v", err)
 	}
-	// authStore := auth.NewUserStore(dbstore.DB)
-	// jwtManager := auth.NewJWTManager("secret", 150000)
+
+	authStore := auth.NewUserStore(dbstore)
+	jwtManager := auth.NewJWTManager("secret", 150000)
 
 	grpcServer := grpc.NewServer(grpc.Creds(creds), grpc.UnaryInterceptor(unaryInterceptor), grpc.StreamInterceptor(streamInterceptor))
 
@@ -54,7 +56,7 @@ func main() {
 	reflection.Register(grpcServer)
 
 	//Nombres pochos
-	//pb_auth_service.RegisterPBAuthServiceServer(grpcServer, service.NewAuthService(*authStore, jwtManager))
+	pb_auth_service.RegisterPBAuthServiceServer(grpcServer, service.NewAuthService(*authStore, jwtManager))
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {

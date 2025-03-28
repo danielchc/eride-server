@@ -1,26 +1,18 @@
 package auth
 
 import (
-	"database/sql"
+	"chenel/passport/app/db"
 	"errors"
-	"fmt"
 
+	"gorm.io/gorm"
 	_ "modernc.org/sqlite"
 )
 
 type AuthStore struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-// // UserStore is an interface to store users
-// type UserStoreInterface interface {
-// 	// Save saves a user to the store
-// 	Save(user *User) error
-// 	// Find finds a user by username
-// 	Find(username string) (*User, error)
-// }
-
-func NewUserStore(db *sql.DB) *AuthStore {
+func NewUserStore(db *gorm.DB) *AuthStore {
 	return &AuthStore{
 		db: db,
 	}
@@ -37,34 +29,29 @@ func (store *AuthStore) Save(user *User) error {
 		return ErrAlreadyExists
 	}
 
+	//???????
+
+	store.db.Create(&db.User{FirstName: "Alice", LastName: "Smith", Username: user.Username, Password: user.HashedPassword, TOTPSecret: "TOTP_SECRET_1"})
+
 	// Insert the new user
-	_, err = store.db.Exec(`
-		INSERT INTO users (username, password)
-		VALUES (?, ?)
-	`, user.Username, user.HashedPassword)
-	if err != nil {
-		return fmt.Errorf("failed to save user: %v", err)
-	}
+	// _, err = store.db.
+	// if err != nil {
+	// 	return fmt.Errorf("failed to save user: %v", err)
+	// }
 
 	return nil
 }
 
 // // Find finds a user by username
 func (store *AuthStore) Find(username string) (*User, error) {
-	row := store.db.QueryRow(`
-		SELECT username, password
-		FROM users
-		WHERE username = ?
-	`, username)
-
 	var user User
-	if err := row.Scan(&user.Username, &user.HashedPassword); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil // User not found
-		}
-		return nil, err // Some other error
+	result := store.db.Where("username = ?", username).First(&user)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, nil // User not found
 	}
-
+	if result.Error != nil {
+		return nil, result.Error
+	}
 	return &user, nil
 }
 

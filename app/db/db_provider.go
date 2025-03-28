@@ -80,11 +80,15 @@ type EntryTag struct {
 	TagID   uint `gorm:"not null"`
 }
 
-func NewDBProvider(dbPath string) (*gorm.DB, error) {
+func NewSQLiteDBProvider(dbPath string) (*gorm.DB, error) {
+	return NewDBProvider(sqlite.Open(dbPath))
+}
+
+func NewDBProvider(dialector gorm.Dialector) (*gorm.DB, error) {
 	// Open database
-	db, err := gorm.Open(sqlite.Open("password_manager.db"), &gorm.Config{})
+	db, err := gorm.Open(dialector, &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to connect database")
+		log.Fatal("failed to connect database")
 	}
 
 	// Auto migrate schemas
