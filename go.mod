@@ -1,4 +1,4 @@
-module chenel/passport
+module chenel/eride
 
 go 1.24.1
 

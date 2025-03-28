@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"chenel/passport/app/db"
+	"chenel/eride/app/db"
 	"errors"
 
 	"gorm.io/gorm"

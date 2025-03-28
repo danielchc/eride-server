@@ -1,13 +1,13 @@
 package main
 
 import (
-	"chenel/passport/app/auth"
-	"chenel/passport/app/config"
-	"chenel/passport/app/consts"
-	"chenel/passport/app/db"
-	"chenel/passport/app/security"
-	"chenel/passport/pb/pb_auth_service"
-	"chenel/passport/service"
+	"chenel/eride/app/auth"
+	"chenel/eride/app/config"
+	"chenel/eride/app/consts"
+	"chenel/eride/app/db"
+	"chenel/eride/app/security"
+	"chenel/eride/pb/pb_auth_service"
+	"chenel/eride/service"
 	"context"
 	"fmt"
 	"log"

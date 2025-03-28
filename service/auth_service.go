@@ -1,8 +1,8 @@
 package service
 
 import (
-	"chenel/passport/app/auth"
-	pb "chenel/passport/pb/pb_auth_service"
+	"chenel/eride/app/auth"
+	pb "chenel/eride/pb/pb_auth_service"
 
 	"context"
 
