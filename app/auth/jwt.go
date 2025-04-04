@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"chenel/eride/app/dto"
 	"fmt"
 	"time"
 
@@ -14,23 +15,21 @@ type JWTManager struct {
 
 type UserClaims struct {
 	jwt.StandardClaims
-	Username      string `json:"username"`
-	Role          string `json:"role"`
-	EncryptionKey string `json:"encryption_key"`
+	Username string `json:"username"`
+	Role     string `json:"role"`
 }
 
 func NewJWTManager(secretKey string, tokenDuration time.Duration) *JWTManager {
 	return &JWTManager{secretKey, tokenDuration}
 }
 
-func (manager *JWTManager) Generate(user *User) (string, error) {
+func (manager *JWTManager) Generate(user *dto.User) (string, error) {
 	claims := UserClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(manager.tokenDuration).Unix(),
 		},
-		Username:      user.Username,
-		Role:          "user",
-		EncryptionKey: user.getEncryptionKey(),
+		Username: user.Username,
+		Role:     "user",
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

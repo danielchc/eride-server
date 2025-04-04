@@ -6,8 +6,8 @@ import (
 	"chenel/eride/app/consts"
 	"chenel/eride/app/db"
 	"chenel/eride/app/security"
-	"chenel/eride/pb/pb_auth_service"
-	"chenel/eride/service"
+	"chenel/eride/app/service"
+	pb "chenel/eride/pb"
 	"context"
 	"fmt"
 	"log"
@@ -69,7 +69,7 @@ func main() {
 	reflection.Register(grpcServer)
 
 	//Nombres pochos
-	pb_auth_service.RegisterPBAuthServiceServer(grpcServer, service.NewAuthService(*authStore, jwtManager))
+	pb.RegisterPBAuthServiceServer(grpcServer, service.NewAuthService(*authStore, jwtManager))
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GetInt("server.port")))
 	if err != nil {

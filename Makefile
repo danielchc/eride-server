@@ -6,7 +6,6 @@ clean:
 gen:
 	mkdir ./pb/ && protoc --proto_path=proto proto/*.proto  --go_out=:pb --go-grpc_out=:pb
 
-
 config:
 	cp config.yaml config.yaml.example
 

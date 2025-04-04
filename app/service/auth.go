@@ -2,10 +2,13 @@ package service
 
 import (
 	"chenel/eride/app/auth"
-	pb "chenel/eride/pb/pb_auth_service"
+	"chenel/eride/app/dto"
+	pb "chenel/eride/pb"
+	"fmt"
 
 	"context"
 
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -23,7 +26,7 @@ func NewAuthService(authStore auth.AuthStore, jwtManager *auth.JWTManager) pb.PB
 func (server *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	user, err := server.authStore.Find(req.GetUsername())
 
-	if err != nil || user == nil || !user.IsCorrectPassword(req.GetPassword()) {
+	if err != nil || user == nil || !IsCorrectPassword(*user, req.GetPassword()) {
 		return nil, status.Errorf(codes.PermissionDenied, "incorrect username/password")
 	}
 
@@ -38,8 +41,18 @@ func (server *AuthService) Login(ctx context.Context, req *pb.LoginRequest) (*pb
 }
 
 func (server *AuthService) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
-	user, _ := auth.NewUser(req.GetUsername(), req.GetPassword())
-	err := server.authStore.Save(user)
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.GetPassword()), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("error hashing password: %v", err)
+	}
+
+	user := &dto.User{
+		Username: req.GetUsername(),
+		Password: string(hashedPassword),
+	}
+
+	err = server.authStore.Save(user)
 
 	if err != nil {
 		return nil, err
@@ -53,4 +66,9 @@ func (server *AuthService) CreateUser(ctx context.Context, req *pb.CreateUserReq
 	res := &pb.CreateUserResponse{
 		AccessToken: token}
 	return res, nil
+}
+
+func IsCorrectPassword(user dto.User, password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	return err == nil
 }

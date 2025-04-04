@@ -1,13 +1,6 @@
-package db
+package dto
 
-import (
-	"fmt"
-	"log"
-	"time"
-
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
-)
+import "time"
 
 // User model
 type User struct {
@@ -78,25 +71,4 @@ type Tag struct {
 type EntryTag struct {
 	EntryID uint `gorm:"not null"`
 	TagID   uint `gorm:"not null"`
-}
-
-func NewSQLiteDBProvider(dbPath string) (*gorm.DB, error) {
-	return NewDBProvider(sqlite.Open(dbPath))
-}
-
-func NewDBProvider(dialector gorm.Dialector) (*gorm.DB, error) {
-	// Open database
-	db, err := gorm.Open(dialector, &gorm.Config{})
-	if err != nil {
-		log.Fatal("failed to connect database")
-	}
-
-	// Auto migrate schemas
-	err = db.AutoMigrate(&User{}, &Group{}, &Vault{}, &Folder{}, &Entry{}, &EntryRevision{}, &ACL{}, &Tag{}, &EntryTag{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create database file: %v", err)
-	}
-
-	return db, nil
-
 }

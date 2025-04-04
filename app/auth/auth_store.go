@@ -1,8 +1,9 @@
 package auth
 
 import (
-	"chenel/eride/app/db"
+	"chenel/eride/app/dto"
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite"
@@ -19,7 +20,7 @@ func NewUserStore(db *gorm.DB) *AuthStore {
 }
 
 // Save saves a user to the SQLite database
-func (store *AuthStore) Save(user *User) error {
+func (store *AuthStore) Save(user *dto.User) error {
 	// Check if the user already exists
 	existingUser, err := store.Find(user.Username)
 	if err != nil {
@@ -29,22 +30,18 @@ func (store *AuthStore) Save(user *User) error {
 		return ErrAlreadyExists
 	}
 
-	//???????
-
-	store.db.Create(&db.User{FirstName: "Alice", LastName: "Smith", Username: user.Username, Password: user.HashedPassword, TOTPSecret: "TOTP_SECRET_1"})
-
 	// Insert the new user
-	// _, err = store.db.
-	// if err != nil {
-	// 	return fmt.Errorf("failed to save user: %v", err)
-	// }
+	result := store.db.Create(user)
+	if result.Error != nil {
+		return fmt.Errorf("failed to save user: %v", result.Error)
+	}
 
 	return nil
 }
 
 // // Find finds a user by username
-func (store *AuthStore) Find(username string) (*User, error) {
-	var user User
+func (store *AuthStore) Find(username string) (*dto.User, error) {
+	var user dto.User
 	result := store.db.Where("username = ?", username).First(&user)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil // User not found

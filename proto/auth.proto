@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-package pb_auth_service;
-option go_package = "./pb_auth_service";
+package pb;
+option go_package = "./";
 
 service PBAuthService {
   rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
