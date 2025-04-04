@@ -3,7 +3,6 @@ package service
 import (
 	"chenel/eride/app/auth"
 	"context"
-	"log"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -11,15 +10,37 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+var publicMethods = []string{
+	"/pb.AuthService/Login",
+	"/pb.AuthService/CreateUser",
+}
+
+// accessibleRoles is a map of RPC methods to their accessible roles
+var accessibleRoles = map[string][]string{
+	"/pb.VaultService/CreateVault": {
+		"admin",
+		"user",
+	},
+	"/pb.PBAuthService/UpdateUser": {
+		"admin",
+	},
+	"/pb.PBAuthService/DeleteUser": {
+		"admin",
+	},
+	"/pb.PBAuthService/GetUser": {
+		"admin",
+		"user",
+	},
+}
+
 // AuthInterceptor is a server interceptor for authentication and authorization
 type AuthInterceptor struct {
-	jwtManager      *auth.JWTManager
-	accessibleRoles map[string][]string
+	jwtManager *auth.JWTManager
 }
 
 // NewAuthInterceptor returns a new auth interceptor
-func NewAuthInterceptor(jwtManager *auth.JWTManager, accessibleRoles map[string][]string) *AuthInterceptor {
-	return &AuthInterceptor{jwtManager, accessibleRoles}
+func NewAuthInterceptor(jwtManager *auth.JWTManager) *AuthInterceptor {
+	return &AuthInterceptor{jwtManager}
 }
 
 // Unary returns a server interceptor function to authenticate and authorize unary RPC
@@ -30,7 +51,6 @@ func (interceptor *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		log.Println("--> unary interceptor: ", info.FullMethod)
 
 		err := interceptor.authorize(ctx, info.FullMethod)
 		if err != nil {
@@ -49,8 +69,6 @@ func (interceptor *AuthInterceptor) Stream() grpc.StreamServerInterceptor {
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
-		log.Println("--> stream interceptor: ", info.FullMethod)
-
 		err := interceptor.authorize(stream.Context(), info.FullMethod)
 		if err != nil {
 			return err
@@ -61,11 +79,18 @@ func (interceptor *AuthInterceptor) Stream() grpc.StreamServerInterceptor {
 }
 
 func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string) error {
-	accessibleRoles, ok := interceptor.accessibleRoles[method]
-	if !ok {
-		// everyone can access
-		return nil
+
+	println("authorizing method: ", method)
+
+	// Check if the method is public
+	for _, publicMethod := range publicMethods {
+		if method == publicMethod {
+			// everyone can access
+			return nil
+		}
 	}
+
+	accessibleRoles := accessibleRoles[method]
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {

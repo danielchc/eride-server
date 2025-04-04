@@ -4,7 +4,7 @@ import "time"
 
 // User model
 type User struct {
-	ID         uint   `gorm:"primaryKey"`
+	ID         uint64 `gorm:"primaryKey"`
 	FirstName  string `gorm:"not null"`
 	LastName   string `gorm:"not null"`
 	Username   string `gorm:"unique;not null"`
@@ -15,60 +15,61 @@ type User struct {
 
 // Group model
 type Group struct {
-	ID   uint   `gorm:"primaryKey"`
+	ID   uint64 `gorm:"primaryKey"`
 	Name string `gorm:"unique;not null"`
 }
 
 // Vault model
 type Vault struct {
-	ID        uint   `gorm:"primaryKey"`
+	ID        uint64 `gorm:"primaryKey"`
 	Name      string `gorm:"not null"`
 	Desc      string
 	CreatedAt time.Time
 	Folders   []Folder
+	ACL       []ACL `gorm:"foreignKey:VaultID"`
+}
+
+// ACL model
+type ACL struct {
+	ID      uint64 `gorm:"primaryKey"`
+	UserID  *uint64
+	GroupID *uint64
+	Role    string `gorm:"not null"`
+	VaultID uint64 `gorm:"not null"`
 }
 
 // Folder model
 type Folder struct {
-	ID       uint `gorm:"primaryKey"`
-	VaultID  uint `gorm:"not null"`
-	ParentID *uint
+	ID       uint64 `gorm:"primaryKey"`
+	VaultID  uint64 `gorm:"not null"`
+	ParentID *uint64
 	Name     string `gorm:"not null"`
 	Entries  []Entry
 }
 
 // Entry model
 type Entry struct {
-	ID       uint   `gorm:"primaryKey"`
-	FolderID uint   `gorm:"not null"`
+	ID       uint64 `gorm:"primaryKey"`
+	FolderID uint64 `gorm:"not null"`
 	Name     string `gorm:"not null"`
 }
 
 // EntryRevision model
 type EntryRevision struct {
-	ID        uint `gorm:"primaryKey"`
-	EntryID   uint `gorm:"not null"`
-	Version   int  `gorm:"not null"`
+	ID        uint64 `gorm:"primaryKey"`
+	EntryID   uint64 `gorm:"not null"`
+	Version   int    `gorm:"not null"`
 	CreatedAt time.Time
-}
-
-// ACL model
-type ACL struct {
-	ID      uint `gorm:"primaryKey"`
-	VaultID uint `gorm:"not null"`
-	UserID  *uint
-	GroupID *uint
-	Role    string `gorm:"not null"`
 }
 
 // Tag model
 type Tag struct {
-	ID   uint   `gorm:"primaryKey"`
+	ID   uint64 `gorm:"primaryKey"`
 	Name string `gorm:"unique;not null"`
 }
 
 // EntryTag model
 type EntryTag struct {
-	EntryID uint `gorm:"not null"`
-	TagID   uint `gorm:"not null"`
+	EntryID uint64 `gorm:"not null"`
+	TagID   uint64 `gorm:"not null"`
 }

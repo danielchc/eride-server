@@ -21,6 +21,7 @@ func LoadConfig() (*viper.Viper, error) {
 	vp.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
 	vp.AddConfigPath(".")
 	vp.SetDefault("server.port", 9647)
+	vp.SetDefault("security.jwtTokenDuration", 36000000)
 
 	vp.AutomaticEnv()
 	vp.SetEnvPrefix("env")

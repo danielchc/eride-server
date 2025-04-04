@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package pb;
+option go_package = "./";
+
+service VaultService {
+  rpc CreateVault(CreateVaultRequest) returns (VaultResponse);
+  rpc UpdateVault(UpdateVaultRequest) returns (VaultResponse);
+  rpc AddFolder(AddFolderRequest) returns (VaultResponse);
+}
+
+message Vault {
+  uint64 id = 1;
+  string name = 2;
+  string desc = 3;
+  string created_at = 4; // use ISO-8601 string or google.protobuf.Timestamp
+  repeated Folder folders = 5;
+}
+
+message Folder {
+  uint64 id = 1;
+  string name = 2;
+}
+
+message CreateVaultRequest {
+  string name = 1;
+  string desc = 2;
+}
+
+message UpdateVaultRequest {
+  uint64 id = 1;
+  string name = 2;
+}
+
+message AddFolderRequest {
+  uint64 vault_id = 1;
+  string folder_name = 2;
+}
+
+message VaultResponse {
+  Vault vault = 1;
+}

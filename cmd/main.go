@@ -7,6 +7,7 @@ import (
 	"chenel/eride/app/db"
 	"chenel/eride/app/security"
 	"chenel/eride/app/service"
+	"chenel/eride/app/vault"
 	pb "chenel/eride/pb"
 	"context"
 	"fmt"
@@ -62,14 +63,25 @@ func main() {
 	}
 
 	authStore := auth.NewUserStore(dbstore)
-	jwtManager := auth.NewJWTManager(cfg.GetString("security.jwtSecret"), time.Duration(cfg.GetUint32("security.jwtTokenDuration")))
+	fmt.Printf("Token duration: %d ms\n", time.Duration(cfg.GetUint64("security.jwtTokenDuration")))
+
+	jwtManager := auth.NewJWTManager(cfg.GetString("security.jwtSecret"), time.Duration(cfg.GetUint64("security.jwtTokenDuration"))*time.Second)
+	vaultStore := vault.NewVaultStore(dbstore)
 
 	// GRPC server with TLS
-	grpcServer := grpc.NewServer(grpc.Creds(creds), grpc.UnaryInterceptor(unaryInterceptor), grpc.StreamInterceptor(streamInterceptor))
+
+	interceptor := service.NewAuthInterceptor(jwtManager)
+	grpcServer := grpc.NewServer(
+		grpc.Creds(creds),
+		grpc.UnaryInterceptor(interceptor.Unary()),
+		grpc.StreamInterceptor(interceptor.Stream()),
+	)
+
 	reflection.Register(grpcServer)
 
 	//Nombres pochos
-	pb.RegisterPBAuthServiceServer(grpcServer, service.NewAuthService(*authStore, jwtManager))
+	pb.RegisterAuthServiceServer(grpcServer, service.NewAuthService(*authStore, jwtManager))
+	pb.RegisterVaultServiceServer(grpcServer, service.NewVaultService(*vaultStore))
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GetInt("server.port")))
 	if err != nil {

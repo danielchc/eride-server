@@ -39,7 +39,7 @@ func (store *AuthStore) Save(user *dto.User) error {
 	return nil
 }
 
-// // Find finds a user by username
+// Find finds a user by username
 func (store *AuthStore) Find(username string) (*dto.User, error) {
 	var user dto.User
 	result := store.db.Where("username = ?", username).First(&user)

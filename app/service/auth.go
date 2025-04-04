@@ -14,12 +14,12 @@ import (
 )
 
 type AuthService struct {
-	pb.UnimplementedPBAuthServiceServer
+	pb.UnimplementedAuthServiceServer
 	authStore  auth.AuthStore
 	jwtManager *auth.JWTManager
 }
 
-func NewAuthService(authStore auth.AuthStore, jwtManager *auth.JWTManager) pb.PBAuthServiceServer {
+func NewAuthService(authStore auth.AuthStore, jwtManager *auth.JWTManager) pb.AuthServiceServer {
 	return &AuthService{authStore: authStore, jwtManager: jwtManager}
 }
 

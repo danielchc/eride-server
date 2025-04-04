@@ -3,7 +3,7 @@ syntax = "proto3";
 package pb;
 option go_package = "./";
 
-service PBAuthService {
+service AuthService {
   rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
   rpc Login (LoginRequest) returns (LoginResponse);
 }
