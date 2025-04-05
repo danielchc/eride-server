@@ -16,6 +16,7 @@ type JWTManager struct {
 type UserClaims struct {
 	jwt.StandardClaims
 	Username string `json:"username"`
+	ID       uint64 `json:"id"`
 	Role     string `json:"role"`
 }
 
@@ -28,6 +29,7 @@ func (manager *JWTManager) Generate(user *dto.User) (string, error) {
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(manager.tokenDuration).Unix(),
 		},
+		ID:       user.ID,
 		Username: user.Username,
 		Role:     "user",
 	}

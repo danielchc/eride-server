@@ -116,3 +116,22 @@ func (interceptor *AuthInterceptor) authorize(ctx context.Context, method string
 
 	return status.Error(codes.PermissionDenied, "no permission to access this RPC")
 }
+
+func (interceptor *AuthInterceptor) GetUserID(ctx context.Context) (*uint64, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Errorf(codes.Unauthenticated, "metadata is not provided")
+	}
+
+	values := md["authorization"]
+	if len(values) == 0 {
+		return nil, status.Errorf(codes.Unauthenticated, "authorization token is not provided")
+	}
+	accessToken := values[0]
+	claims, err := interceptor.jwtManager.Verify(accessToken)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "access token is invalid: %v", err)
+	}
+
+	return &claims.ID, nil
+}

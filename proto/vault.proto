@@ -13,7 +13,7 @@ message Vault {
   uint64 id = 1;
   string name = 2;
   string desc = 3;
-  string created_at = 4; // use ISO-8601 string or google.protobuf.Timestamp
+  int64 created_at = 4; // use ISO-8601 string or google.protobuf.Timestamp
   repeated Folder folders = 5;
 }
 

@@ -70,18 +70,17 @@ func main() {
 
 	// GRPC server with TLS
 
-	interceptor := service.NewAuthInterceptor(jwtManager)
+	authInterceptor := service.NewAuthInterceptor(jwtManager)
 	grpcServer := grpc.NewServer(
 		grpc.Creds(creds),
-		grpc.UnaryInterceptor(interceptor.Unary()),
-		grpc.StreamInterceptor(interceptor.Stream()),
+		grpc.UnaryInterceptor(authInterceptor.Unary()),
+		grpc.StreamInterceptor(authInterceptor.Stream()),
 	)
 
 	reflection.Register(grpcServer)
 
-	//Nombres pochos
-	pb.RegisterAuthServiceServer(grpcServer, service.NewAuthService(*authStore, jwtManager))
-	pb.RegisterVaultServiceServer(grpcServer, service.NewVaultService(*vaultStore))
+	pb.RegisterAuthServiceServer(grpcServer, service.NewAuthService(authStore, jwtManager))
+	pb.RegisterVaultServiceServer(grpcServer, service.NewVaultService(authInterceptor, vaultStore))
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GetInt("server.port")))
 	if err != nil {
